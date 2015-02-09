@@ -1,0 +1,154 @@
+Processing chr1
+Total boundaries                  : 553
+Total boundaries/w >= 1 feature   : 210
+Fraction of boundaries/w feature  : 0.379746835443
+Total domains                     : 576
+Total domains/w    >= 1 feature   : 395
+Fraction of domains/w feature     : 0.685763888889
+Processing chr10
+Total boundaries                  : 822
+Total boundaries/w >= 1 feature   : 307
+Fraction of boundaries/w feature  : 0.373479318735
+Total domains                     : 865
+Total domains/w    >= 1 feature   : 609
+Fraction of domains/w feature     : 0.704046242775
+Processing chr11
+Total boundaries                  : 1123
+Total boundaries/w >= 1 feature   : 452
+Fraction of boundaries/w feature  : 0.40249332146
+Total domains                     : 1185
+Total domains/w    >= 1 feature   : 836
+Fraction of domains/w feature     : 0.705485232068
+Processing chr12
+Total boundaries                  : 1410
+Total boundaries/w >= 1 feature   : 549
+Fraction of boundaries/w feature  : 0.389361702128
+Total domains                     : 1503
+Total domains/w    >= 1 feature   : 1038
+Fraction of domains/w feature     : 0.690618762475
+Processing chr13
+Total boundaries                  : 1599
+Total boundaries/w >= 1 feature   : 601
+Fraction of boundaries/w feature  : 0.375859912445
+Total domains                     : 1710
+Total domains/w    >= 1 feature   : 1183
+Fraction of domains/w feature     : 0.691812865497
+Processing chr14
+Total boundaries                  : 1820
+Total boundaries/w >= 1 feature   : 665
+Fraction of boundaries/w feature  : 0.365384615385
+Total domains                     : 1939
+Total domains/w    >= 1 feature   : 1346
+Fraction of domains/w feature     : 0.694172253739
+Processing chr15
+Total boundaries                  : 2034
+Total boundaries/w >= 1 feature   : 737
+Fraction of boundaries/w feature  : 0.362340216323
+Total domains                     : 2163
+Total domains/w    >= 1 feature   : 1516
+Fraction of domains/w feature     : 0.700878409616
+Processing chr16
+Total boundaries                  : 2206
+Total boundaries/w >= 1 feature   : 803
+Fraction of boundaries/w feature  : 0.364007252947
+Total domains                     : 2350
+Total domains/w    >= 1 feature   : 1657
+Fraction of domains/w feature     : 0.705106382979
+Processing chr17
+Total boundaries                  : 2425
+Total boundaries/w >= 1 feature   : 905
+Fraction of boundaries/w feature  : 0.373195876289
+Total domains                     : 2586
+Total domains/w    >= 1 feature   : 1819
+Fraction of domains/w feature     : 0.703402938902
+Processing chr18
+Total boundaries                  : 2589
+Total boundaries/w >= 1 feature   : 958
+Fraction of boundaries/w feature  : 0.370027037466
+Total domains                     : 2764
+Total domains/w    >= 1 feature   : 1929
+Fraction of domains/w feature     : 0.697901591896
+Processing chr19
+Total boundaries                  : 2722
+Total boundaries/w >= 1 feature   : 1020
+Fraction of boundaries/w feature  : 0.374724467303
+Total domains                     : 2907
+Total domains/w    >= 1 feature   : 2028
+Fraction of domains/w feature     : 0.697626418989
+Processing chr2
+Total boundaries                  : 3252
+Total boundaries/w >= 1 feature   : 1224
+Fraction of boundaries/w feature  : 0.376383763838
+Total domains                     : 3476
+Total domains/w    >= 1 feature   : 2425
+Fraction of domains/w feature     : 0.697640966628
+Processing chr20
+Total boundaries                  : 3416
+Total boundaries/w >= 1 feature   : 1308
+Fraction of boundaries/w feature  : 0.382903981265
+Total domains                     : 3645
+Total domains/w    >= 1 feature   : 2549
+Fraction of domains/w feature     : 0.699314128944
+Processing chr21
+Total boundaries                  : 3494
+Total boundaries/w >= 1 feature   : 1329
+Fraction of boundaries/w feature  : 0.380366342301
+Total domains                     : 3725
+Total domains/w    >= 1 feature   : 2609
+Fraction of domains/w feature     : 0.700402684564
+Processing chr22
+Total boundaries                  : 3602
+Total boundaries/w >= 1 feature   : 1381
+Fraction of boundaries/w feature  : 0.38339811216
+Total domains                     : 3837
+Total domains/w    >= 1 feature   : 2702
+Fraction of domains/w feature     : 0.704195986448
+Processing chr3
+Total boundaries                  : 4037
+Total boundaries/w >= 1 feature   : 1523
+Fraction of boundaries/w feature  : 0.377260341838
+Total domains                     : 4300
+Total domains/w    >= 1 feature   : 3015
+Fraction of domains/w feature     : 0.701162790698
+Processing chr4
+Total boundaries                  : 4429
+Total boundaries/w >= 1 feature   : 1635
+Fraction of boundaries/w feature  : 0.369157823436
+Total domains                     : 4738
+Total domains/w    >= 1 feature   : 3266
+Fraction of domains/w feature     : 0.68932038835
+Processing chr5
+Total boundaries                  : 4783
+Total boundaries/w >= 1 feature   : 1753
+Fraction of boundaries/w feature  : 0.366506376751
+Total domains                     : 5139
+Total domains/w    >= 1 feature   : 3516
+Fraction of domains/w feature     : 0.684179801518
+Processing chr6
+Total boundaries                  : 5179
+Total boundaries/w >= 1 feature   : 1880
+Fraction of boundaries/w feature  : 0.363004441012
+Total domains                     : 5571
+Total domains/w    >= 1 feature   : 3789
+Fraction of domains/w feature     : 0.680129240711
+Processing chr7
+Total boundaries                  : 5469
+Total boundaries/w >= 1 feature   : 1986
+Fraction of boundaries/w feature  : 0.363137685134
+Total domains                     : 5900
+Total domains/w    >= 1 feature   : 3986
+Fraction of domains/w feature     : 0.675593220339
+Processing chr8
+Total boundaries                  : 5777
+Total boundaries/w >= 1 feature   : 2098
+Fraction of boundaries/w feature  : 0.363164272114
+Total domains                     : 6238
+Total domains/w    >= 1 feature   : 4206
+Fraction of domains/w feature     : 0.674254568772
+Processing chr9
+Total boundaries                  : 6028
+Total boundaries/w >= 1 feature   : 2198
+Fraction of boundaries/w feature  : 0.364631718646
+Total domains                     : 6496
+Total domains/w    >= 1 feature   : 4403
+Fraction of domains/w feature     : 0.677801724138

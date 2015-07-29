@@ -83,6 +83,12 @@ int main(int argc, char* argv[]) {
       auto mat = matProp.matrix;
       cerr << "MatrixParser read matrix of size: " << mat->size1() << " x " << mat->size2()  << "\n";
 
+      auto dEnsemble = multiscaleDomains(mat, p.gammaMax, p.stepSize, p.k, p.minMeanSamples);
+
+      p.areaCovered = calCoverage(dEnsemble, matProp);
+      cerr << p.areaCovered;
+      cin.ignore();
+
       int PAMresult[] = { 1,1,1,1,1,1,1,2,2,2,2 };
       int resultSize = int(sizeof(PAMresult)/sizeof(int));
       int maxHier = PAMresult[resultSize-1];

@@ -176,16 +176,27 @@ DomainSet ArmatusDAG::extractDomains(size_t i, float areaCovered) {
     float ratio, weight;
 
     l = params->n;
-    do {
-        k = OPT[l][i].backPointer;
-        if (q(k,l) > 0) {
-            ratio = log10(areaCovered/float(l-k));
-            weight = log10(float(params->sums(k-1, l-1))) * ratio;
-            dset.push_back(Domain(k-1,l-1, weight)); 
-        }
-        l = k-1;
-    } while(l > 1);
-
+    if (areaCovered == -1) {    
+        do {
+            k = OPT[l][i].backPointer;
+            if (q(k,l) > 0) {
+                dset.push_back(Domain(k-1,l-1)); 
+            }
+            l = k-1;
+        } while(l > 1);
+    }
+    else {
+        do {
+            k = OPT[l][i].backPointer;
+            if (q(k,l) > 0) {
+                ratio = log10(areaCovered/float(l-k));
+                weight = log10(float(params->sums(k-1, l-1))) * ratio;
+                dset.push_back(Domain(k-1, l-1, weight)); 
+            }
+            l = k-1;
+        } while(l > 1);
+    }
+    
     return dset;
 }
 

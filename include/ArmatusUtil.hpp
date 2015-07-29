@@ -53,15 +53,16 @@ struct WeightedDomainEnsemble {
 
 // void optimalDomains(std::shared_ptr<SparseMatrix> A, float gamma);
 
+WeightedDomainEnsemble multiscaleDomains(std::shared_ptr<SparseMatrix> A, float gammaMax, double stepSize, int k, int minMeanSamples);
 WeightedDomainEnsemble multiscaleDomains(std::shared_ptr<SparseMatrix> A, float gammaMax, float gammaMin, 
     double stepSize, int k, int minMeanSamples, int areaCovered, std::vector<std::vector<double>> allMu);
 
 DomainSet consensusDomains(WeightedDomainEnsemble& dEnsemble);
 
 void outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int start, int heir);
-
 int outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int heir, int myIndex, int pIndex);
 
+int calCoverage(WeightedDomainEnsemble& dEnsemble, MatrixProperties matProp);
 std::vector<double> getMu(std::shared_ptr<SparseMatrix> A, float gamma, int minMeanSamples);
 
 #endif // __ARMATUS_UTIL_HPP__

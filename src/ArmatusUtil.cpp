@@ -102,8 +102,6 @@ DomainSet consensusDomains(WeightedDomainEnsemble& dEnsemble) {
         auto& dSet = dEnsemble.domainSets[dSetIdx];
         auto weight = dEnsemble.weights[dSetIdx];
         for (auto& domain : dSet) {
-            //if ( pmap.find(domain) == pmap.end() ) pmap[domain] = 0;
-            //pmap[domain] += weight;
             pmap[domain] = domain.weight;
         }
     }
@@ -127,6 +125,31 @@ DomainSet consensusDomains(WeightedDomainEnsemble& dEnsemble) {
     sort(dSet.begin(), dSet.end());
 
     return dSet;
+}
+
+WeightedDomainEnsemble multiscaleDomains(std::shared_ptr<SparseMatrix> A, 
+    float gammaMax, double stepSize, int k, int minMeanSamples) {
+
+    WeightedDomainEnsemble dEnsemble;
+    double eps = 1e-5;
+
+    for (double gamma=0; gamma <= gammaMax+eps; gamma+=stepSize) {
+
+        cerr << "gamma=" << gamma << endl;
+ 
+        ArmatusParams params(A, gamma, k, minMeanSamples); // k parameter is not used for anything in Params
+        ArmatusDAG G(params); // but is used in the DAG
+        G.build();
+        G.computeTopK();
+
+        auto domainEnsemble = G.extractTopK(-1); //area covered not used here
+        auto& domains = domainEnsemble.domainSets;
+        auto& weights = domainEnsemble.weights;
+        dEnsemble.domainSets.insert(dEnsemble.domainSets.end(), domains.begin(), domains.end());
+        dEnsemble.weights.insert(dEnsemble.weights.end(), weights.begin(), weights.end());
+    }
+
+    return dEnsemble;
 }
 
 WeightedDomainEnsemble multiscaleDomains(std::shared_ptr<SparseMatrix> A,
@@ -178,6 +201,42 @@ int outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int he
     }
     file.close();
     return myIndex;
+}
+
+int calCoverage(WeightedDomainEnsemble& dEnsemble, MatrixProperties matProp) {
+    DomainSet allDomainSet; //across all gamma values
+    int res = matProp.resolution;
+    
+    for (auto dSetIdx : boost::irange(size_t{0}, dEnsemble.domainSets.size())) {
+      auto& dSet = dEnsemble.domainSets[dSetIdx];
+      for (auto d : dSet)
+        allDomainSet.push_back(Domain((d.start+1)*res, (d.end+1)*res));
+    }
+
+    sort(allDomainSet.begin(), allDomainSet.end());
+    
+    //calculate coverage
+    size_t curStart = allDomainSet[0].start;
+    size_t curEnd = allDomainSet[0].end;
+    int coverage = curEnd - curStart;
+    int curSum = 0;
+    for (auto d : allDomainSet) {
+        if ((d.start>curStart) && (d.end>curEnd) && (d.start<curEnd)) {
+            curEnd = d.end;
+            curSum = curEnd-curStart;
+        } else if ((d.start==curStart) && (d.end>curEnd)) {
+            curEnd = d.end;
+            curSum = curEnd-curStart;
+        } else if ((d.start>curEnd) && (d.end>curEnd)) {
+            coverage += curSum;
+            curStart = d.start;
+            curEnd = d.end;
+            curSum = curEnd - curStart;
+        }
+    }
+    coverage += curSum;
+
+    return coverage;
 }
 
 std::vector<double> getMu(std::shared_ptr<SparseMatrix> A, float gamma, int minMeanSamples){

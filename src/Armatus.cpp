@@ -46,7 +46,6 @@ int main(int argc, char* argv[]) {
     size_t k;
     double stepSize;
     int minMeanSamples;
-    int areaCovered;
   };
 
   Params p;
@@ -61,8 +60,7 @@ int main(int argc, char* argv[]) {
   ("topK,k", po::value<size_t>(&p.k)->default_value(1), "Compute the top k optimal solutions")  
   ("minMeanSamples,n", po::value<int>(&p.minMeanSamples)->default_value(100), "Minimum required number of samples to compute a mean")
   ("output,o", po::value<string>(&p.outputPrefix)->required(), "output filename prefix")  
-  ("stepSize,s", po::value<double>(&p.stepSize)->default_value(0.05), "Step size to increment resolution parameter")
-  ("areaCovered,a", po::value<int>(&p.areaCovered)->required(), "Area Covered by the unique domains (*****NEED TO ADD FUNCTION TO CALCULATE THIS*****");
+  ("stepSize,s", po::value<double>(&p.stepSize)->default_value(0.05), "Step size to increment resolution parameter");
 
   po::variables_map vm;
   try {
@@ -83,11 +81,30 @@ int main(int argc, char* argv[]) {
       auto mat = matProp.matrix;
       cerr << "MatrixParser read matrix of size: " << mat->size1() << " x " << mat->size2()  << "\n";
 
-      auto dEnsemble = multiscaleDomains(mat, p.gammaMax, p.stepSize, p.k, p.minMeanSamples);
+      auto dEnsemble = multiscaleDomains(matProp, p.gammaMax, p.stepSize, p.k, p.minMeanSamples);
 
-      p.areaCovered = calCoverage(dEnsemble, matProp);
-      cerr << p.areaCovered;
-      cin.ignore();
+      int areaCovered = calCoverage(dEnsemble, matProp);
+      int K = dEnsemble.domainSets.size();
+
+      for (int i=0; i<K; i++){
+          auto consensusFile = p.outputPrefix + "test.txt";
+          cerr << "Writing all gamma domains to file" << endl;
+          outputDomains(dEnsemble.domainSets[i], consensusFile, matProp, 0, 1);
+      }
+      double **VI_S = new double *[K];
+      for(int i = 0; i < K; i++)
+        VI_S[i] = new double[K];
+      getVImatrix(dEnsemble, VI_S);
+
+      /*int clusterid[11];
+      cerr << "HERE" << endl;
+      double *error;
+      cerr << "HERE" << endl;
+      int *ifound;
+      cerr << "HERE" << endl;
+      kmedoids(2, 11, VI_S, 5, clusterid, error, ifound);*/
+
+      //cin.ignore();
 
       int PAMresult[] = { 1,1,1,1,1,1,1,2,2,2,2 };
       int resultSize = int(sizeof(PAMresult)/sizeof(int));
@@ -122,7 +139,7 @@ int main(int argc, char* argv[]) {
           p.gammaMax = gammaMaxes[hier-1];
           p.gammaMin = gammaMins[hier-1];
 
-          auto dEnsemble = multiscaleDomains(mat, p.gammaMax, p.gammaMin, p.stepSize, p.k, p.minMeanSamples, p.areaCovered, allMu);
+          auto dEnsemble = multiscaleDomains(matProp, p.gammaMax, p.gammaMin, p.stepSize, p.k, p.minMeanSamples, areaCovered, allMu);
           dConsensusParent = consensusDomains(dEnsemble);
           
           auto consensusFile = p.outputPrefix + ".consensus.txt";
@@ -145,7 +162,8 @@ int main(int argc, char* argv[]) {
             boost::numeric::ublas::compressed_matrix<double> passed_ptr = subrange(*mat, start, end, start, end);
             using SparseMatrix = boost::numeric::ublas::compressed_matrix<double>;
             std::shared_ptr<SparseMatrix> mat_topass = make_shared<SparseMatrix>(passed_ptr);
-            auto dEnsemble = multiscaleDomains(mat_topass, p.gammaMax, p.gammaMin, p.stepSize, p.k, p.minMeanSamples, p.areaCovered, allMu);
+            matProp.matrix = mat_topass;
+            auto dEnsemble = multiscaleDomains(matProp, p.gammaMax, p.gammaMin, p.stepSize, p.k, p.minMeanSamples, areaCovered, allMu);
 
             auto dConsensusHier = consensusDomains(dEnsemble);
             for (size_t i=0; i<dConsensusHier.size(); i++){

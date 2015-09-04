@@ -23,9 +23,9 @@ OPT(0) = OPT(1) = OPTD(0) = OPTD(1) = 0
 
 */
 
-ArmatusDAG::ArmatusDAG(ArmatusParams& p) : 
+ArmatusDAG::ArmatusDAG(ArmatusParams& p, std::vector<double> BIp, double muBIp) : 
     OPT(SubProbMatrix(p.n+1)),
-    OPTD(SubProbMatrix(p.n+1)) { 
+    OPTD(SubProbMatrix(p.n+1)), BI(BIp), muBI(muBIp) { 
 	params = &p;
     for (size_t l=0; l <= p.n; l++) {
        OPT[l].resize(p.K); 
@@ -45,8 +45,12 @@ q(k,l) = {  s(k,l)   if s(k,l) > 0,
 */
 double ArmatusDAG::q(size_t k, size_t l) {
     size_t d_i = d(k,l);
-    double score = (s(k, l) - params->mu[d_i]);
-    if (score > 0) return score;
+    double score1 = (s(k, l) - params->mu[d_i]);
+    double score2 = BI[k-1] - muBI;
+    double score3 = BI[l-1] - muBI;
+    if ((score1 > 0) && (score2 > 0) && (score3 > 0)) 
+        return ((0.5*score1)+0.5*(score2+score3));
+        //return (score1);
 	return -std::numeric_limits<double>::infinity();
 }
 

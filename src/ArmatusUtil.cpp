@@ -85,7 +85,34 @@ MatrixProperties parseGZipMatrix(string path) {
         //if ( i % 1000 == 0 ) { std::cerr << "line " << i << "\n"; }
         if (incoming.eof()) break;
     }
+    prop.computemuBI();
     return prop;
+}
+
+void MatrixProperties::computemuBI() {
+    using namespace boost::range;
+    // A reference will be easier to work with here
+    SparseMatrix& M = *matrix;
+    size_t n = matrix->size1();
+    BI = std::vector<double>(matrix->size1()+1);
+
+    double interval = 3; 
+    double steps = 12;
+    double b = 0, a1, a2; 
+    muBI = 0;
+    for (size_t i : boost::irange(size_t{0}, n+1)) {
+        b = 0;
+        for (int q=1; q<=steps; q++) {
+            for (int p=1; p<=interval; p++){
+                a1 = M(i-q, i-p) - M(i-q, i+p);
+                a2 = M(i+q, i-p) - M(i+q, i+p);
+                b += abs(a1) + abs(a2);
+            }
+        }
+        BI[i] = b;
+        muBI += b; 
+    }
+    muBI /= (n-1);
 }
 
 // domain size
@@ -127,8 +154,13 @@ DomainSet consensusDomains(WeightedDomainEnsemble& dEnsemble) {
     return dSet;
 }
 
-WeightedDomainEnsemble multiscaleDomains(std::shared_ptr<SparseMatrix> A, 
+//used for calculating domains across gammas in whole matrix
+WeightedDomainEnsemble multiscaleDomains(MatrixProperties matProp, 
     float gammaMax, double stepSize, int k, int minMeanSamples) {
+
+    auto A = matProp.matrix;
+    double muBI = matProp.muBI;
+    std::vector<double> BI = matProp.BI;
 
     WeightedDomainEnsemble dEnsemble;
     double eps = 1e-5;
@@ -138,7 +170,7 @@ WeightedDomainEnsemble multiscaleDomains(std::shared_ptr<SparseMatrix> A,
         cerr << "gamma=" << gamma << endl;
  
         ArmatusParams params(A, gamma, k, minMeanSamples); // k parameter is not used for anything in Params
-        ArmatusDAG G(params); // but is used in the DAG
+        ArmatusDAG G(params, BI, muBI); // but is used in the DAG
         G.build();
         G.computeTopK();
 
@@ -152,9 +184,14 @@ WeightedDomainEnsemble multiscaleDomains(std::shared_ptr<SparseMatrix> A,
     return dEnsemble;
 }
 
-WeightedDomainEnsemble multiscaleDomains(std::shared_ptr<SparseMatrix> A,
+//used for calculating domains at hierarchical level after gamma clustering
+WeightedDomainEnsemble multiscaleDomains(MatrixProperties matProp,
     float gammaMax, float gammaMin, double stepSize, int k, int minMeanSamples, 
     int areaCovered, std::vector<std::vector<double>> allMu) {
+
+    auto A = matProp.matrix;
+    double muBI = matProp.muBI;
+    std::vector<double> BI = matProp.BI;
 
     WeightedDomainEnsemble dEnsemble;
     double eps = 1e-5;
@@ -166,7 +203,7 @@ WeightedDomainEnsemble multiscaleDomains(std::shared_ptr<SparseMatrix> A,
 
         mu = allMu[index];
         ArmatusParams params(A, gamma, k, minMeanSamples, mu); // k parameter is not used for anything in Params
-        ArmatusDAG G(params); // but is used in the DAG
+        ArmatusDAG G(params, BI, muBI); // but is used in the DAG
         G.build();
         G.computeTopK();
 
@@ -180,23 +217,23 @@ WeightedDomainEnsemble multiscaleDomains(std::shared_ptr<SparseMatrix> A,
     return dEnsemble;
 }
 
-void outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int start, int heir) {
+void outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int start, int hier) {
     ofstream file;
     file.open(fname, ios::app);
     int res = matProp.resolution;
     for (auto d : dSet) {
-        file << matProp.chrom << "\t" << (d.start+1+start)*res << "\t" << (d.end+1+start)*res << "\t" << heir << endl;
+        file << matProp.chrom << "\t" << (d.start+1+start)*res << "\t" << (d.end+1+start)*res << "\t" << hier << endl;
     }
     file.close();
 }
 
-int outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int heir, int myIndex, int pIndex) {
+int outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int hier, int myIndex, int pIndex) {
     ofstream file;
     file.open(fname, ios::app);
     int res = matProp.resolution;
     for (auto d : dSet) {
         file << myIndex << "\t" << matProp.chrom << "\t" << (d.start+1)*res << "\t" << 
-            (d.end+1)*res << "\t" << pIndex << "\t" << heir << endl;
+            (d.end+1)*res << "\t" << pIndex << "\t" << hier << endl;
         myIndex++;
     }
     file.close();
@@ -208,9 +245,9 @@ int calCoverage(WeightedDomainEnsemble& dEnsemble, MatrixProperties matProp) {
     int res = matProp.resolution;
     
     for (auto dSetIdx : boost::irange(size_t{0}, dEnsemble.domainSets.size())) {
-      auto& dSet = dEnsemble.domainSets[dSetIdx];
-      for (auto d : dSet)
-        allDomainSet.push_back(Domain((d.start+1)*res, (d.end+1)*res));
+        auto& dSet = dEnsemble.domainSets[dSetIdx];
+        for (auto d : dSet)
+            allDomainSet.push_back(Domain((d.start+1)*res, (d.end+1)*res));
     }
 
     sort(allDomainSet.begin(), allDomainSet.end());
@@ -242,6 +279,102 @@ int calCoverage(WeightedDomainEnsemble& dEnsemble, MatrixProperties matProp) {
 std::vector<double> getMu(std::shared_ptr<SparseMatrix> A, float gamma, int minMeanSamples){
     ArmatusParams params(A, gamma, 0, minMeanSamples); 
     return params.mu;
+}
+
+void getVImatrix(WeightedDomainEnsemble& dEnsemble, double **VI_S) {
+    double VI;
+    size_t N=0;
+
+    for (auto dSetIdx : boost::irange(size_t{0}, dEnsemble.domainSets.size())) {
+        auto& dSet = dEnsemble.domainSets[dSetIdx];
+        for (auto d : dSet) {
+            if (N < d.end)
+                N = d.end;
+        }
+    }
+
+    for (auto dSetIdx1 : boost::irange(size_t{0}, dEnsemble.domainSets.size())) {
+        auto& dSet1 = dEnsemble.domainSets[dSetIdx1];
+        for (auto dSetIdx2 : boost::irange(dSetIdx1, dEnsemble.domainSets.size())) {
+            auto& dSet2 = dEnsemble.domainSets[dSetIdx2];
+            VI = getVI(dSet1, dSet2, N+2);
+            VI_S[dSetIdx1][dSetIdx2] = VI;
+            VI_S[dSetIdx2][dSetIdx1] = VI;
+        }
+    }
+}
+
+//get the variation of information between 2 sets of domains
+double getVI(DomainSet dSet1, DomainSet dSet2, size_t N){
+    double MI = 0, VI = 0;
+    size_t minD = dSet1[0].start;
+    size_t maxD = dSet1[0].end;
+    
+    for (auto d : dSet1) {
+        if (minD > d.start) { minD = d.start; }
+        if (maxD < d.end) { maxD = d.end; }
+    }
+
+    for (auto d : dSet2) {
+        if (minD > d.start) { minD = d.start; }
+        if (maxD < d.end) { maxD = d.end; }
+    }
+
+    size_t L = maxD - minD + 1, start = minD, end = 0;
+    
+    DomainSet dSet1Plus;
+    for (auto d1 : dSet1) {
+        if (start < d1.start)
+            dSet1Plus.push_back(Domain(start, d1.start-1));
+        dSet1Plus.push_back(d1);
+        start = d1.end+1;
+        end = d1.end;
+    }
+    if (end < maxD)
+        dSet1Plus.push_back(Domain(end+1, maxD));
+    
+    start = minD;
+    DomainSet dSet2Plus;
+    for (auto d2 : dSet2) {
+        if (start < d2.start)
+            dSet2Plus.push_back(Domain(start, d2.start-1));
+        dSet2Plus.push_back(d2);
+        start = d2.end+1;
+        end = d2.end;
+    }
+    if (end < maxD)
+        dSet2Plus.push_back(Domain(end+1, maxD));
+    
+    vector<double> p_xs, p_ys;
+    for (auto d1 : dSet1Plus)
+        p_xs.push_back((d1.end + 1 - d1.start) * 1.0 / L);
+    for (auto d2 : dSet2Plus)
+        p_ys.push_back((d2.end + 1 - d2.start) * 1.0 / L);
+
+    double p_x, p_y, p_xy;
+    int overlap;
+    for (size_t i = 0; i < dSet1Plus.size(); i++) {
+        auto d1 = dSet1Plus[i];
+        p_x = p_xs[i];
+        for (size_t j = 0; j < dSet2Plus.size(); j++) {
+            auto d2 = dSet2Plus[j];
+            p_y = p_ys[j];
+            overlap = min(d2.end, d1.end) + 1 - max(d1.start, d2.start);
+            if (overlap <= 0) 
+                continue;
+            p_xy = (overlap * 1.0) / L;
+            MI += (p_xy * log(p_xy / (p_x * p_y)));
+        }
+    }
+    
+    double H_1 = 0, H_2 = 0;
+    for (double p : p_xs)
+        H_1 += p * log(p);
+    for (double p : p_ys)
+        H_2 += p * log(p);
+    VI = (-1*H_1) + (-1*H_2) - 2*MI;
+
+    return VI;
 }
 
 

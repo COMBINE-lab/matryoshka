@@ -19,9 +19,12 @@ using SparseMatrix = boost::numeric::ublas::compressed_matrix<double>;
 
 class MatrixProperties {
     public:
+        void computemuBI();
     std::shared_ptr<SparseMatrix> matrix;
     std::string chrom;
     int resolution;
+    std::vector<double> BI;
+    double muBI;
 };
 
 MatrixProperties parseGZipMatrix(string path);
@@ -53,16 +56,18 @@ struct WeightedDomainEnsemble {
 
 // void optimalDomains(std::shared_ptr<SparseMatrix> A, float gamma);
 
-WeightedDomainEnsemble multiscaleDomains(std::shared_ptr<SparseMatrix> A, float gammaMax, double stepSize, int k, int minMeanSamples);
-WeightedDomainEnsemble multiscaleDomains(std::shared_ptr<SparseMatrix> A, float gammaMax, float gammaMin, 
+WeightedDomainEnsemble multiscaleDomains(MatrixProperties matProp, float gammaMax, double stepSize, int k, int minMeanSamples);
+WeightedDomainEnsemble multiscaleDomains(MatrixProperties matProp, float gammaMax, float gammaMin, 
     double stepSize, int k, int minMeanSamples, int areaCovered, std::vector<std::vector<double>> allMu);
 
 DomainSet consensusDomains(WeightedDomainEnsemble& dEnsemble);
 
-void outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int start, int heir);
-int outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int heir, int myIndex, int pIndex);
+void outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int start, int hier);
+int outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int hier, int myIndex, int pIndex);
 
 int calCoverage(WeightedDomainEnsemble& dEnsemble, MatrixProperties matProp);
 std::vector<double> getMu(std::shared_ptr<SparseMatrix> A, float gamma, int minMeanSamples);
+void getVImatrix(WeightedDomainEnsemble& dEnsemble, double **VI_S);
+double getVI(DomainSet dSet1, DomainSet dSet2, size_t N);
 
 #endif // __ARMATUS_UTIL_HPP__

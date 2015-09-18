@@ -7,6 +7,7 @@
 #include <vector>
 #include <fstream>
 #include <string>
+#include <limits>
 
 #include <boost/range/irange.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
@@ -20,6 +21,11 @@
 #include "IntervalScheduling.hpp"
 #include "ArmatusParams.hpp"
 #include "ArmatusDAG.hpp"
+
+extern "C" {
+#include <cluster.h>
+#undef min
+}
 
 string matrix_format_error = "Invalid matrix format. Expected format: \n<chromoID>\t<fragment_start>\t<fragment_end>\t<row of entries>";
 
@@ -85,34 +91,7 @@ MatrixProperties parseGZipMatrix(string path) {
         //if ( i % 1000 == 0 ) { std::cerr << "line " << i << "\n"; }
         if (incoming.eof()) break;
     }
-    prop.computemuBI();
     return prop;
-}
-
-void MatrixProperties::computemuBI() {
-    using namespace boost::range;
-    // A reference will be easier to work with here
-    SparseMatrix& M = *matrix;
-    size_t n = matrix->size1();
-    BI = std::vector<double>(matrix->size1()+1);
-
-    double interval = 3; 
-    double steps = 12;
-    double b = 0, a1, a2; 
-    muBI = 0;
-    for (size_t i : boost::irange(size_t{0}, n+1)) {
-        b = 0;
-        for (int q=1; q<=steps; q++) {
-            for (int p=1; p<=interval; p++){
-                a1 = M(i-q, i-p) - M(i-q, i+p);
-                a2 = M(i+q, i-p) - M(i+q, i+p);
-                b += abs(a1) + abs(a2);
-            }
-        }
-        BI[i] = b;
-        muBI += b; 
-    }
-    muBI /= (n-1);
 }
 
 // domain size
@@ -127,7 +106,6 @@ DomainSet consensusDomains(WeightedDomainEnsemble& dEnsemble) {
 
     for (auto dSetIdx : boost::irange(size_t{0}, dEnsemble.domainSets.size())) {
         auto& dSet = dEnsemble.domainSets[dSetIdx];
-        auto weight = dEnsemble.weights[dSetIdx];
         for (auto& domain : dSet) {
             pmap[domain] = domain.weight;
         }
@@ -159,8 +137,6 @@ WeightedDomainEnsemble multiscaleDomains(MatrixProperties matProp,
     float gammaMax, double stepSize, int k, int minMeanSamples) {
 
     auto A = matProp.matrix;
-    double muBI = matProp.muBI;
-    std::vector<double> BI = matProp.BI;
 
     WeightedDomainEnsemble dEnsemble;
     double eps = 1e-5;
@@ -170,7 +146,7 @@ WeightedDomainEnsemble multiscaleDomains(MatrixProperties matProp,
         cerr << "gamma=" << gamma << endl;
  
         ArmatusParams params(A, gamma, k, minMeanSamples); // k parameter is not used for anything in Params
-        ArmatusDAG G(params, BI, muBI); // but is used in the DAG
+        ArmatusDAG G(params); // but is used in the DAG
         G.build();
         G.computeTopK();
 
@@ -187,23 +163,21 @@ WeightedDomainEnsemble multiscaleDomains(MatrixProperties matProp,
 //used for calculating domains at hierarchical level after gamma clustering
 WeightedDomainEnsemble multiscaleDomains(MatrixProperties matProp,
     float gammaMax, float gammaMin, double stepSize, int k, int minMeanSamples, 
-    int areaCovered, std::vector<std::vector<double>> allMu) {
+    int areaCovered, std::vector<std::vector<double>> allMu, std::vector<std::vector<double>> allMax) {
 
     auto A = matProp.matrix;
-    double muBI = matProp.muBI;
-    std::vector<double> BI = matProp.BI;
 
     WeightedDomainEnsemble dEnsemble;
     double eps = 1e-5;
     int index = 0;
     std::vector<double> mu;
-    
+
     for (double gamma=gammaMin; gamma <= gammaMax+eps; gamma+=stepSize) {
         index = (int)(gamma*20+0.5);
 
         mu = allMu[index];
         ArmatusParams params(A, gamma, k, minMeanSamples, mu); // k parameter is not used for anything in Params
-        ArmatusDAG G(params, BI, muBI); // but is used in the DAG
+        ArmatusDAG G(params); // but is used in the DAG
         G.build();
         G.computeTopK();
 
@@ -215,6 +189,16 @@ WeightedDomainEnsemble multiscaleDomains(MatrixProperties matProp,
     }
 
     return dEnsemble;
+}
+
+void outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int start) {
+    ofstream file;
+    file.open(fname, ios::app);
+    int res = matProp.resolution;
+    for (auto d : dSet) {
+        file << matProp.chrom << "\t" << (d.start+1+start)*res << "\t" << (d.end+1+start)*res << endl;
+    }
+    file.close();
 }
 
 void outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int start, int hier) {
@@ -240,6 +224,7 @@ int outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int hi
     return myIndex;
 }
 
+//calculate length of chromosome covered by domain set
 int calCoverage(WeightedDomainEnsemble& dEnsemble, MatrixProperties matProp) {
     DomainSet allDomainSet; //across all gamma values
     int res = matProp.resolution;
@@ -281,6 +266,7 @@ std::vector<double> getMu(std::shared_ptr<SparseMatrix> A, float gamma, int minM
     return params.mu;
 }
 
+//matrix contains variation of information between domains across all gamma values
 void getVImatrix(WeightedDomainEnsemble& dEnsemble, double **VI_S) {
     double VI;
     size_t N=0;
@@ -297,7 +283,10 @@ void getVImatrix(WeightedDomainEnsemble& dEnsemble, double **VI_S) {
         auto& dSet1 = dEnsemble.domainSets[dSetIdx1];
         for (auto dSetIdx2 : boost::irange(dSetIdx1, dEnsemble.domainSets.size())) {
             auto& dSet2 = dEnsemble.domainSets[dSetIdx2];
-            VI = getVI(dSet1, dSet2, N+2);
+            if (dSetIdx1 == dSetIdx2)
+                VI = 0;
+            else
+                VI = getVI(dSet1, dSet2, N+2);
             VI_S[dSetIdx1][dSetIdx2] = VI;
             VI_S[dSetIdx2][dSetIdx1] = VI;
         }
@@ -377,5 +366,73 @@ double getVI(DomainSet dSet1, DomainSet dSet2, size_t N){
     return VI;
 }
 
+//cluster the values according to variation of informatio to get gamma values
+//at each level of the hierarchy
+std::vector<int> getCluster(double **VI_S, int K){
+    int clusterid[K], PAMresult[K];
+    double *error = new double;
+    int *ifound = new int;
+    double avgWidth = 0;
+    double temp = (std::numeric_limits<double>::min)();;
 
+    for (int i=2; i<K; i++) { //to get the best number of clusters based on silhoutte
+        for (int j=0; j<5; j++) { //to avoid results from local maxima
+            kmedoids(i, K, VI_S, 10, clusterid, error, ifound);
+            avgWidth = calAvgWidth(VI_S, clusterid, K);
+            if (avgWidth > temp){
+              temp = avgWidth;
+              std::copy(clusterid, clusterid + K, PAMresult);
+            }
+        }
+    }
 
+    std::vector<int> vec(PAMresult, PAMresult + K);
+    return(vec);
+}
+
+//best cluster selected with largest average width
+double calAvgWidth(double **VI_S, int clusterid[], int K){
+    int myCluster, curCluster;
+    double cDist[K], sil[K];
+    int cCount[K];
+    memset(cCount, 0, K*sizeof(int));
+    double a, b, width = 0;
+
+    for (int i=0; i<K; i++){
+        curCluster = clusterid[i];
+        cCount[curCluster] += 1;
+    }
+
+    for (int i=0; i<K; i++){
+        memset(cDist, 0, K*sizeof(double));
+        
+        for (int j=0; j<K; j++){
+            curCluster = clusterid[j];
+            cDist[curCluster] += abs(VI_S[i][j]);
+        }
+
+        myCluster = clusterid[i];
+        if (cCount[myCluster] > 1)
+            a = cDist[myCluster]/(cCount[myCluster]-1); //not counting self
+        else 
+            a = 0;
+        cDist[myCluster] = (std::numeric_limits<double>::max)();
+        b = (std::numeric_limits<double>::max)();
+        for (int j=0; j<K; j++) {
+            if (cCount[j] > 0)
+                cDist[j] /= cCount[j];
+            if ((cDist[j] < b) && (cDist[j] != 0))
+                b = cDist[j];
+        }
+
+        if (a == 0)
+            sil[i] = 0;
+        else
+            sil[i] = (b-a)/max(a,b);
+    }
+    
+    for (int i=0; i<K; i++)
+        width += sil[i];
+
+    return (width/K);
+}

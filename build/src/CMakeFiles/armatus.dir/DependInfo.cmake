@@ -1,8 +1,13 @@
 # The set of languages for which implicit dependencies are needed:
 SET(CMAKE_DEPENDS_LANGUAGES
+  "C"
   "CXX"
   )
 # The set of files for implicit dependencies of each language:
+SET(CMAKE_DEPENDS_CHECK_C
+  "/home/laraib/Desktop/Laraib/Desktop/COMBINE lab work/matryoshka_heir/src/cluster.c" "/home/laraib/Desktop/Laraib/Desktop/COMBINE lab work/matryoshka_heir/build/src/CMakeFiles/armatus.dir/cluster.c.o"
+  )
+SET(CMAKE_C_COMPILER_ID "GNU")
 SET(CMAKE_DEPENDS_CHECK_CXX
   "/home/laraib/Desktop/Laraib/Desktop/COMBINE lab work/matryoshka_heir/src/Armatus.cpp" "/home/laraib/Desktop/Laraib/Desktop/COMBINE lab work/matryoshka_heir/build/src/CMakeFiles/armatus.dir/Armatus.cpp.o"
   "/home/laraib/Desktop/Laraib/Desktop/COMBINE lab work/matryoshka_heir/src/ArmatusDAG.cpp" "/home/laraib/Desktop/Laraib/Desktop/COMBINE lab work/matryoshka_heir/build/src/CMakeFiles/armatus.dir/ArmatusDAG.cpp.o"

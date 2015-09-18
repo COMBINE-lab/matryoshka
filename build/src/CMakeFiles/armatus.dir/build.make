@@ -167,13 +167,37 @@ src/CMakeFiles/armatus.dir/IntervalScheduling.cpp.o.provides: src/CMakeFiles/arm
 
 src/CMakeFiles/armatus.dir/IntervalScheduling.cpp.o.provides.build: src/CMakeFiles/armatus.dir/IntervalScheduling.cpp.o
 
+src/CMakeFiles/armatus.dir/cluster.c.o: src/CMakeFiles/armatus.dir/flags.make
+src/CMakeFiles/armatus.dir/cluster.c.o: ../src/cluster.c
+	$(CMAKE_COMMAND) -E cmake_progress_report "/home/laraib/Desktop/Laraib/Desktop/COMBINE lab work/matryoshka_heir/build/CMakeFiles" $(CMAKE_PROGRESS_6)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building C object src/CMakeFiles/armatus.dir/cluster.c.o"
+	cd "/home/laraib/Desktop/Laraib/Desktop/COMBINE lab work/matryoshka_heir/build/src" && /usr/bin/cc  $(C_DEFINES) $(C_FLAGS) -o CMakeFiles/armatus.dir/cluster.c.o   -c "/home/laraib/Desktop/Laraib/Desktop/COMBINE lab work/matryoshka_heir/src/cluster.c"
+
+src/CMakeFiles/armatus.dir/cluster.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/armatus.dir/cluster.c.i"
+	cd "/home/laraib/Desktop/Laraib/Desktop/COMBINE lab work/matryoshka_heir/build/src" && /usr/bin/cc  $(C_DEFINES) $(C_FLAGS) -E "/home/laraib/Desktop/Laraib/Desktop/COMBINE lab work/matryoshka_heir/src/cluster.c" > CMakeFiles/armatus.dir/cluster.c.i
+
+src/CMakeFiles/armatus.dir/cluster.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/armatus.dir/cluster.c.s"
+	cd "/home/laraib/Desktop/Laraib/Desktop/COMBINE lab work/matryoshka_heir/build/src" && /usr/bin/cc  $(C_DEFINES) $(C_FLAGS) -S "/home/laraib/Desktop/Laraib/Desktop/COMBINE lab work/matryoshka_heir/src/cluster.c" -o CMakeFiles/armatus.dir/cluster.c.s
+
+src/CMakeFiles/armatus.dir/cluster.c.o.requires:
+.PHONY : src/CMakeFiles/armatus.dir/cluster.c.o.requires
+
+src/CMakeFiles/armatus.dir/cluster.c.o.provides: src/CMakeFiles/armatus.dir/cluster.c.o.requires
+	$(MAKE) -f src/CMakeFiles/armatus.dir/build.make src/CMakeFiles/armatus.dir/cluster.c.o.provides.build
+.PHONY : src/CMakeFiles/armatus.dir/cluster.c.o.provides
+
+src/CMakeFiles/armatus.dir/cluster.c.o.provides.build: src/CMakeFiles/armatus.dir/cluster.c.o
+
 # Object files for target armatus
 armatus_OBJECTS = \
 "CMakeFiles/armatus.dir/Armatus.cpp.o" \
 "CMakeFiles/armatus.dir/ArmatusUtil.cpp.o" \
 "CMakeFiles/armatus.dir/ArmatusParams.cpp.o" \
 "CMakeFiles/armatus.dir/ArmatusDAG.cpp.o" \
-"CMakeFiles/armatus.dir/IntervalScheduling.cpp.o"
+"CMakeFiles/armatus.dir/IntervalScheduling.cpp.o" \
+"CMakeFiles/armatus.dir/cluster.c.o"
 
 # External object files for target armatus
 armatus_EXTERNAL_OBJECTS =
@@ -183,6 +207,7 @@ src/armatus: src/CMakeFiles/armatus.dir/ArmatusUtil.cpp.o
 src/armatus: src/CMakeFiles/armatus.dir/ArmatusParams.cpp.o
 src/armatus: src/CMakeFiles/armatus.dir/ArmatusDAG.cpp.o
 src/armatus: src/CMakeFiles/armatus.dir/IntervalScheduling.cpp.o
+src/armatus: src/CMakeFiles/armatus.dir/cluster.c.o
 src/armatus: src/CMakeFiles/armatus.dir/build.make
 src/armatus: /home/laraib/Desktop/Laraib/Desktop/COMBINE\ lab\ work/boost_1_56_0/stage/lib/libboost_program_options.so
 src/armatus: /home/laraib/Desktop/Laraib/Desktop/COMBINE\ lab\ work/boost_1_56_0/stage/lib/libboost_iostreams.so
@@ -201,6 +226,7 @@ src/CMakeFiles/armatus.dir/requires: src/CMakeFiles/armatus.dir/ArmatusUtil.cpp.
 src/CMakeFiles/armatus.dir/requires: src/CMakeFiles/armatus.dir/ArmatusParams.cpp.o.requires
 src/CMakeFiles/armatus.dir/requires: src/CMakeFiles/armatus.dir/ArmatusDAG.cpp.o.requires
 src/CMakeFiles/armatus.dir/requires: src/CMakeFiles/armatus.dir/IntervalScheduling.cpp.o.requires
+src/CMakeFiles/armatus.dir/requires: src/CMakeFiles/armatus.dir/cluster.c.o.requires
 .PHONY : src/CMakeFiles/armatus.dir/requires
 
 src/CMakeFiles/armatus.dir/clean:

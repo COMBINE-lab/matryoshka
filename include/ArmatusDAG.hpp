@@ -16,8 +16,6 @@ using namespace std;
 class ArmatusDAG {
     private:
     ArmatusParams * params;
-    std::vector<double> BI;
-    double muBI;
 
     class SubProblem {
         public:
@@ -40,7 +38,7 @@ class ArmatusDAG {
     SubProbMatrix OPT;
     SubProbMatrix OPTD;
 
-    explicit ArmatusDAG(ArmatusParams &p, std::vector<double> BIp, double muBIp);
+    explicit ArmatusDAG(ArmatusParams &p);
     
     double q(size_t k, size_t l);
     

@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <sstream>
 #include <cmath>
+#include <fstream>
 
 #include <boost/range/irange.hpp>
 #include <boost/filesystem.hpp>
@@ -15,11 +16,10 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/io.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include "Version.hpp"
 #include "ArmatusUtil.hpp"
-
-#include <fstream>
 
 using namespace std;
 
@@ -45,6 +45,7 @@ int main(int argc, char* argv[]) {
     double gammaMin;
     size_t k;
     double stepSize;
+    bool outputMultiscale;
     int minMeanSamples;
   };
 
@@ -58,6 +59,7 @@ int main(int argc, char* argv[]) {
   ("help,h", "produce help message")
   ("input,i", po::value<string>(&p.inputFile)->required(), "input matrix file, expected format (tab-separated): <chromo>\\t<start>\\t<end>\\t<f1 f2 ...>")
   ("topK,k", po::value<size_t>(&p.k)->default_value(1), "Compute the top k optimal solutions")  
+  ("outputMultiscale,m", po::value<bool>(&p.outputMultiscale)->zero_tokens()->default_value(false), "Output multiscale domains to files as well")
   ("minMeanSamples,n", po::value<int>(&p.minMeanSamples)->default_value(100), "Minimum required number of samples to compute a mean")
   ("output,o", po::value<string>(&p.outputPrefix)->required(), "output filename prefix")  
   ("stepSize,s", po::value<double>(&p.stepSize)->default_value(0.05), "Step size to increment resolution parameter");
@@ -86,47 +88,50 @@ int main(int argc, char* argv[]) {
       int areaCovered = calCoverage(dEnsemble, matProp);
       int K = dEnsemble.domainSets.size();
 
-      for (int i=0; i<K; i++){
-          auto consensusFile = p.outputPrefix + "test.txt";
-          cerr << "Writing all gamma domains to file" << endl;
-          outputDomains(dEnsemble.domainSets[i], consensusFile, matProp, 0, 1);
+      if (p.outputMultiscale) {
+        cerr << "Writing all multi scale domains to file" << endl;
+        for (int i=0; i<K; i++){
+            auto multiscaleFile = p.outputPrefix + ".multiscale.txt";
+            outputDomains(dEnsemble.domainSets[i], multiscaleFile, matProp, 0);
+        }
       }
+      
       double **VI_S = new double *[K];
       for(int i = 0; i < K; i++)
         VI_S[i] = new double[K];
       getVImatrix(dEnsemble, VI_S);
 
-      /*int clusterid[11];
-      cerr << "HERE" << endl;
-      double *error;
-      cerr << "HERE" << endl;
-      int *ifound;
-      cerr << "HERE" << endl;
-      kmedoids(2, 11, VI_S, 5, clusterid, error, ifound);*/
-
-      //cin.ignore();
-
-      int PAMresult[] = { 1,1,1,1,1,1,1,2,2,2,2 };
-      int resultSize = int(sizeof(PAMresult)/sizeof(int));
-      int maxHier = PAMresult[resultSize-1];
+      std::vector<int> PAMresult = getCluster(VI_S, K);
+      int resultSize = PAMresult.size();
+      std::vector<int> temp = PAMresult;
+      auto uniqEnd = std::unique(temp.begin(), temp.end());
+      int maxHier = std::distance(temp.begin(), uniqEnd);
+      
+      cerr << "There are " << maxHier << " levels of hierarchy with clustering: " << endl;
+      for (int i = 0; i<resultSize; i++){
+        cerr << PAMresult[i] << " ";
+      }
+      cerr << endl;
 
       double gammaMins[maxHier], gammaMaxes[maxHier], gammaTemp=p.gammaMin;
-      int index, indexTemp=0;
-      gammaMins[0] = p.gammaMin;
-      gammaMaxes[maxHier-1] = p.gammaMax;
+      int index, indexTemp=PAMresult[0], sizeFill=0;
+      gammaMins[0] = p.gammaMin; //start of array min gamma
+      gammaMaxes[maxHier-1] = p.gammaMax; //end of array max gamma
       for (int i=0; i<resultSize; i++) {
-        index = int(PAMresult[i]-1);
+        index = int(PAMresult[i]);
         if (indexTemp != index) {
-          gammaMins[index] = gammaTemp;
-          gammaMaxes[indexTemp] = gammaTemp - p.stepSize;
+          gammaMins[sizeFill+1] = gammaTemp;
+          gammaMaxes[sizeFill] = gammaTemp - p.stepSize;
           indexTemp = index;
+          sizeFill++;
         }
         gammaTemp += p.stepSize;
       }
-
+      
       int curIndex=1, pIndex=0;
       std::vector<Domain> dConsensusParent, dConsensusHier, dConsensusHierTemp;
-      std::vector<std::vector<double>> allMu(11);
+      std::vector<std::vector<double>> allMu(K);
+      std::vector<std::vector<double>> allMax(K);
 
       index = 0;
       for (double gamma=p.gammaMin; gamma <= p.gammaMax; gamma+=p.stepSize) {
@@ -139,7 +144,7 @@ int main(int argc, char* argv[]) {
           p.gammaMax = gammaMaxes[hier-1];
           p.gammaMin = gammaMins[hier-1];
 
-          auto dEnsemble = multiscaleDomains(matProp, p.gammaMax, p.gammaMin, p.stepSize, p.k, p.minMeanSamples, areaCovered, allMu);
+          auto dEnsemble = multiscaleDomains(matProp, p.gammaMax, p.gammaMin, p.stepSize, p.k, p.minMeanSamples, areaCovered, allMu, allMax);
           dConsensusParent = consensusDomains(dEnsemble);
           
           auto consensusFile = p.outputPrefix + ".consensus.txt";
@@ -163,7 +168,7 @@ int main(int argc, char* argv[]) {
             using SparseMatrix = boost::numeric::ublas::compressed_matrix<double>;
             std::shared_ptr<SparseMatrix> mat_topass = make_shared<SparseMatrix>(passed_ptr);
             matProp.matrix = mat_topass;
-            auto dEnsemble = multiscaleDomains(matProp, p.gammaMax, p.gammaMin, p.stepSize, p.k, p.minMeanSamples, areaCovered, allMu);
+            auto dEnsemble = multiscaleDomains(matProp, p.gammaMax, p.gammaMin, p.stepSize, p.k, p.minMeanSamples, areaCovered, allMu, allMax);
 
             auto dConsensusHier = consensusDomains(dEnsemble);
             for (size_t i=0; i<dConsensusHier.size(); i++){

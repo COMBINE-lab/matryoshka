@@ -235,6 +235,30 @@ IntervalScheduling.cpp.s:
 	cd "/home/laraib/Desktop/Laraib/Desktop/COMBINE lab work/matryoshka_heir/build" && $(MAKE) -f src/CMakeFiles/armatus.dir/build.make src/CMakeFiles/armatus.dir/IntervalScheduling.cpp.s
 .PHONY : IntervalScheduling.cpp.s
 
+cluster.o: cluster.c.o
+.PHONY : cluster.o
+
+# target to build an object file
+cluster.c.o:
+	cd "/home/laraib/Desktop/Laraib/Desktop/COMBINE lab work/matryoshka_heir/build" && $(MAKE) -f src/CMakeFiles/armatus.dir/build.make src/CMakeFiles/armatus.dir/cluster.c.o
+.PHONY : cluster.c.o
+
+cluster.i: cluster.c.i
+.PHONY : cluster.i
+
+# target to preprocess a source file
+cluster.c.i:
+	cd "/home/laraib/Desktop/Laraib/Desktop/COMBINE lab work/matryoshka_heir/build" && $(MAKE) -f src/CMakeFiles/armatus.dir/build.make src/CMakeFiles/armatus.dir/cluster.c.i
+.PHONY : cluster.c.i
+
+cluster.s: cluster.c.s
+.PHONY : cluster.s
+
+# target to generate assembly for a file
+cluster.c.s:
+	cd "/home/laraib/Desktop/Laraib/Desktop/COMBINE lab work/matryoshka_heir/build" && $(MAKE) -f src/CMakeFiles/armatus.dir/build.make src/CMakeFiles/armatus.dir/cluster.c.s
+.PHONY : cluster.c.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -259,6 +283,9 @@ help:
 	@echo "... IntervalScheduling.o"
 	@echo "... IntervalScheduling.i"
 	@echo "... IntervalScheduling.s"
+	@echo "... cluster.o"
+	@echo "... cluster.i"
+	@echo "... cluster.s"
 .PHONY : help
 
 

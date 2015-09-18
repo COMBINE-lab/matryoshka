@@ -16,17 +16,19 @@
 #include <boost/accumulators/statistics/stats.hpp>
 #include <boost/accumulators/statistics/mean.hpp>
 #include <boost/accumulators/statistics/median.hpp>
+#include <boost/accumulators/statistics/max.hpp>
 
 #include "ArmatusParams.hpp"
 
 ArmatusParams::ArmatusParams(std::shared_ptr<SparseMatrix> Ap, double gammap, size_t Kp, int minMeanSamples) :
- A(Ap), n(Ap->size1()), gamma(gammap), mu(std::vector<double>(Ap->size1()+1)),
+ A(Ap), n(Ap->size1()), gamma(gammap), mu(std::vector<double>(Ap->size1()+1)), 
  sums(ArmatusParams::SymmetricMatrix(Ap->size1(), Ap->size2())), K(Kp), minMeanSamples(minMeanSamples) {
  computeSumMu_();
 }
 
-ArmatusParams::ArmatusParams(std::shared_ptr<SparseMatrix> Ap, double gammap, size_t Kp, int minMeanSamples, std::vector<double> mu) :
- A(Ap), n(Ap->size1()), gamma(gammap), mu(mu), 
+ArmatusParams::ArmatusParams(std::shared_ptr<SparseMatrix> Ap, double gammap, size_t Kp, int minMeanSamples, 
+	std::vector<double> mu) :
+ A(Ap), n(Ap->size1()), gamma(gammap), mu(mu),
  sums(ArmatusParams::SymmetricMatrix(Ap->size1(), Ap->size2())), K(Kp), minMeanSamples(minMeanSamples) {
  computeSumSigma_();
 }
@@ -36,7 +38,7 @@ void ArmatusParams::computeSumMu_() {
 	using namespace boost::range;
 	// Vector to hold accumulators that will compute the mean
 	// for domains of each size.
-	std::vector<accumulator_set<double,stats<tag::mean, tag::count>>> acc(n+1);
+	std::vector<accumulator_set<double,stats<tag::mean, tag::count, tag::max>>> acc(n+1);
 	//std::vector<accumulator_set<double,stats<tag::median(with_p_square_quantile), tag::count>>> acc(n+1);
 
 	// A reference will be easier to work with here

@@ -1,4 +1,4 @@
-set (MATRYOSHKA_MAIN Matryoshka.cpp MatryoshkaUtil.cpp MatryoshkaParams.cpp MatryoshkaDAG.cpp IntervalScheduling.cpp cluster.c)
+set (MATRYOSHKA_MAIN Matryoshka.cpp MatryoshkaUtil.cpp MatryoshkaParams.cpp MatryoshkaDAG.cpp IntervalScheduling.cpp)
 
 include_directories( 
 ${Boost_INCLUDE_DIR}

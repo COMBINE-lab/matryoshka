@@ -102,11 +102,6 @@ int main(int argc, char* argv[]) {
         VI_S[i] = new double[K];
       getVImatrix(dEnsemble, VI_S);
 
-      cerr << 0 << ",";
-      for (int i=0;i<K-1;i++)
-        cerr << VI_S[i][i+1] << ",";
-      cerr << endl;
-
       std::vector<int> PAMresult = getCluster(VI_S, K);
       int resultSize = PAMresult.size();
       std::vector<int> temp = PAMresult;

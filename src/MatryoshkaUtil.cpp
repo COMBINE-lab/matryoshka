@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <vector>
+#include <queue>
 #include <fstream>
 #include <string>
 #include <limits>
@@ -21,11 +22,6 @@
 #include "IntervalScheduling.hpp"
 #include "MatryoshkaParams.hpp"
 #include "MatryoshkaDAG.hpp"
-
-extern "C" {
-#include <cluster.h>
-#undef min
-}
 
 string matrix_format_error = "Invalid matrix format. Expected format: \n<chromoID>\t<fragment_start>\t<fragment_end>\t<row of entries>";
 
@@ -354,7 +350,7 @@ double getVI(DomainSet dSet1, DomainSet dSet2, size_t N){
     if (end < maxD)
         dSet2Plus.push_back(Domain(end+1, maxD));
     
-    vector<double> p_xs, p_ys;
+    std::vector<double> p_xs, p_ys;
     for (auto d1 : dSet1Plus)
         p_xs.push_back((d1.end + 1 - d1.start) * 1.0 / L);
     for (auto d2 : dSet2Plus)
@@ -383,26 +379,54 @@ double getVI(DomainSet dSet1, DomainSet dSet2, size_t N){
         H_2 += p * log(p);
     VI = (-1*H_1) + (-1*H_2) - 2*MI;
 
+    //if (VI < 0)
+    //    return 0;
+
     return VI;
 }
 
 //cluster the values according to variation of informatio to get gamma values
 //at each level of the hierarchy
 std::vector<int> getCluster(double **VI_S, int K){
-    srand(time(NULL));
     int clusterid[K], PAMresult[K];
-    double *error = new double;
-    int *ifound = new int;
+    //double *error = new double;
+    //int *ifound = new int;
     double avgWidth = 0;
-    double temp = (std::numeric_limits<double>::min)();;
+    double tempWidth = (std::numeric_limits<double>::min)();
+
+    //to sort the vector, maintaining indices
+    std::vector<int> indices;
+    std::priority_queue<std::pair<double, int>> q_temp;
+    
+    q_temp.push(std::pair<double, int>(0, 0));
+    for (int i=0; i<K-1; i++)
+        q_temp.push(std::pair<double, int>(VI_S[i][i+1], i+1));
+
+    for (int i=0; i<K-1; i++) {
+        int index = q_temp.top().second;
+        indices.push_back(index);
+        q_temp.pop();
+    }
 
     for (int i=2; i<K; i++) { //to get the best number of clusters
-            kmedoids(i, K, VI_S, 50000, clusterid, error, ifound);
-            
+            std::vector<double> newVec(indices.begin(), indices.begin()+i-1);
+            std::sort(newVec.begin(), newVec.end()); //getting cluster boundary element(s)
+     
+            int start=0, ID=0;
+            for (; ID<(int)newVec.size(); ID++){
+                int end=newVec[ID];
+                for (; start<end; start++){
+                    clusterid[start] = ID;
+                }
+            }
+            for (; start<K; start++) {
+                clusterid[start] = ID;
+            }
+
             avgWidth = calAvgWidth(VI_S, clusterid, K);
-            if (avgWidth > temp){
-              temp = avgWidth;
-              std::copy(clusterid, clusterid + K, PAMresult);
+            if (avgWidth > tempWidth){
+                tempWidth = avgWidth; 
+                std::copy(clusterid, clusterid + K, PAMresult);
             }
     }
 

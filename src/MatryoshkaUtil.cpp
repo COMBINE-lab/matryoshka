@@ -379,8 +379,8 @@ double getVI(DomainSet dSet1, DomainSet dSet2, size_t N){
         H_2 += p * log(p);
     VI = (-1*H_1) + (-1*H_2) - 2*MI;
 
-    //if (VI < 0)
-    //    return 0;
+    if (VI < 0)
+        return 0;
 
     return VI;
 }

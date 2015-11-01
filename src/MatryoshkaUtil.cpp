@@ -222,7 +222,8 @@ void outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int s
     file.open(fname, ios::app);
     int res = matProp.resolution;
     for (auto d : dSet) {
-        file << matProp.chrom << "\t" << (d.start+1+start)*res << "\t" << (d.end+1+start)*res << "\t" << hier << endl;
+        //file << matProp.chrom << "\t" << (d.start+1+start)*res << "\t" << (d.end+1+start)*res << "\t" << hier << endl;
+        file << matProp.chrom << "\t" << (d.start+start)*res << "\t" << (d.end+start)*res << "\t" << hier << endl;
     }
     file.close();
 }
@@ -232,8 +233,10 @@ int outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int hi
     file.open(fname, ios::app);
     int res = matProp.resolution;
     for (auto d : dSet) {
-        file << myIndex << "\t" << matProp.chrom << "\t" << (d.start+1)*res << "\t" << 
-            (d.end+1)*res << "\t" << pIndex << "\t" << hier << endl;
+        //file << myIndex << "\t" << matProp.chrom << "\t" << (d.start+1)*res << "\t" << 
+        //    (d.end+1)*res << "\t" << pIndex << "\t" << hier << endl;
+        file << myIndex << "\t" << matProp.chrom << "\t" << (d.start)*res << "\t" << 
+            (d.end)*res << "\t" << pIndex << "\t" << hier << endl;
         myIndex++;
     }
     file.close();
@@ -299,10 +302,7 @@ void getVImatrix(WeightedDomainEnsemble& dEnsemble, double **VI_S) {
         auto& dSet1 = dEnsemble.domainSets[dSetIdx1];
         for (auto dSetIdx2 : boost::irange(dSetIdx1, dEnsemble.domainSets.size())) {
             auto& dSet2 = dEnsemble.domainSets[dSetIdx2];
-            if (dSetIdx1 == dSetIdx2)
-                VI = 0;
-            else
-                VI = getVI(dSet1, dSet2, N+2);
+            VI = getVI(dSet1, dSet2, N+2);
             VI_S[dSetIdx1][dSetIdx2] = VI;
             VI_S[dSetIdx2][dSetIdx1] = VI;
         }
@@ -311,6 +311,8 @@ void getVImatrix(WeightedDomainEnsemble& dEnsemble, double **VI_S) {
 
 //get the variation of information between 2 sets of domains
 double getVI(DomainSet dSet1, DomainSet dSet2, size_t N){
+    reverse(dSet1.begin(), dSet1.end());
+    reverse(dSet2.begin(), dSet2.end());
     double MI = 0, VI = 0;
     size_t minD = dSet1[0].start;
     size_t maxD = dSet1[0].end;
@@ -337,7 +339,7 @@ double getVI(DomainSet dSet1, DomainSet dSet2, size_t N){
     }
     if (end < maxD)
         dSet1Plus.push_back(Domain(end+1, maxD));
-    
+   
     start = minD;
     DomainSet dSet2Plus;
     for (auto d2 : dSet2) {
@@ -378,9 +380,6 @@ double getVI(DomainSet dSet1, DomainSet dSet2, size_t N){
     for (double p : p_ys)
         H_2 += p * log(p);
     VI = (-1*H_1) + (-1*H_2) - 2*MI;
-
-    if (VI < 0)
-        return 0;
 
     return VI;
 }

@@ -45,6 +45,8 @@ class Domain {
     }
 };
 
+using SymmetricMatrix = boost::numeric::ublas::symmetric_matrix<double, boost::numeric::ublas::upper>;
+
 using DomainSet = vector<Domain>;
 using DomainEnsemble = vector<DomainSet>;
 using Weights = vector<double>;
@@ -73,6 +75,7 @@ void getVImatrix(WeightedDomainEnsemble& dEnsemble, double **VI_S);
 double getVI(DomainSet dSet1, DomainSet dSet2, size_t N);
 std::vector<int> getCluster(double **VI_S, int K);
 double calAvgWidth(double **VI_S, int clusterid[], int K);
+void optK(SymmetricMatrix sums, int k, int clusterid[]);
 void randomassign (int nclusters, int nelements, int clusterid[]);
 
 #endif // __MATRYOSHKA_UTIL_HPP__

@@ -10,6 +10,7 @@
 #include <string>
 #include <limits>
 
+#include <boost/range/adaptors.hpp>
 #include <boost/range/irange.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/copy.hpp>
@@ -388,8 +389,6 @@ double getVI(DomainSet dSet1, DomainSet dSet2, size_t N){
 //at each level of the hierarchy
 std::vector<int> getCluster(double **VI_S, int K){
     int clusterid[K], PAMresult[K];
-    //double *error = new double;
-    //int *ifound = new int;
     double avgWidth = 0;
     double tempWidth = (std::numeric_limits<double>::min)();
 
@@ -407,20 +406,23 @@ std::vector<int> getCluster(double **VI_S, int K){
         q_temp.pop();
     }
 
+    size_t tempK = size_t(K);
+    SymmetricMatrix sums = SymmetricMatrix(tempK, tempK);
+    for (size_t i : boost::irange(size_t{1}, tempK)) {
+        sums(i, i) = VI_S[i][i];
+    }
+
+    for (size_t i : boost::irange(size_t{0}, tempK)) {
+        std::vector<double> columnSums(i+1);
+        columnSums[i] = VI_S[i][i];
+        for (size_t j : boost::adaptors::reverse(boost::irange(size_t{0}, i))) {
+            columnSums[j] = columnSums[j+1] + VI_S[j][i];
+            sums(j, i) = sums(j, i-1) + columnSums[j];
+        }
+    }
+
     for (int i=2; i<K; i++) { //to get the best number of clusters
-            std::vector<double> newVec(indices.begin(), indices.begin()+i-1);
-            std::sort(newVec.begin(), newVec.end()); //getting cluster boundary element(s)
-     
-            int start=0, ID=0;
-            for (; ID<(int)newVec.size(); ID++){
-                int end=newVec[ID];
-                for (; start<end; start++){
-                    clusterid[start] = ID;
-                }
-            }
-            for (; start<K; start++) {
-                clusterid[start] = ID;
-            }
+            optK(sums, i, clusterid);
 
             avgWidth = calAvgWidth(VI_S, clusterid, K);
             if (avgWidth > tempWidth){
@@ -431,6 +433,80 @@ std::vector<int> getCluster(double **VI_S, int K){
 
     std::vector<int> vec(PAMresult, PAMresult + K);
     return(vec);
+}
+
+void optK(SymmetricMatrix sums, int k, int clusterid[]) {
+    size_t tempK = sums.size1();
+
+    float solDict[k+1][tempK];
+    for (size_t i : boost::irange(size_t{3},size_t(k+1))) {
+        for (size_t j : boost::irange(size_t{0}, tempK))
+            solDict[i][j] = 1000000;
+    }  
+
+    std::map<std::pair<int, int>, int> opt;
+    opt[std::make_pair(0, 0)] = 0;
+
+    for (size_t i : boost::irange(size_t{0}, tempK))
+        solDict[1][i] = sums(0, i);
+
+    for (size_t i : boost::irange(size_t{1}, tempK)) {
+        float m = 10000000;
+        int x = 0;
+        for (size_t j : boost::irange(size_t{1}, i)) {
+            if (solDict[1][j] + sums(j+1, i) < m) {
+                m = solDict[1][j] + sums(j+1, i);
+                x = j;
+            }
+        }
+        solDict[2][i] = m;
+        opt[std::make_pair(2,i)] = x;
+    }
+
+    if (k >= 3) {
+        for (size_t l : boost::irange(size_t{3},size_t(k+1))) {
+            for (size_t i : boost::irange(size_t{1}, tempK)) {
+                float m = 10000000;
+                int x = 0;
+                for (size_t j : boost::irange(size_t{1}, i)) {
+                    if (solDict[l-1][j] + sums(j+1, i) < m) {
+                        m = solDict[l-1][j] + sums(j+1, i);
+                        x = j;
+                    }
+                }
+                solDict[l][i] = m;
+                opt[std::make_pair(l,i)] = x;
+            }
+        }
+    }
+    
+    int lvl = k;
+    int right = tempK-1;
+    int left = opt[std::make_pair(lvl, right)] + 1;
+    std::vector<pair<int, int>> bt;
+    while (lvl > 1) {
+        bt.push_back(std::make_pair(left, right));
+        lvl -= 1;
+        if (lvl > 1) {
+            right = left - 1;
+            left = opt[std::make_pair(lvl, right)] + 1;
+        }
+        else {
+            right = left - 1;
+            bt.push_back(std::make_pair(0, right));
+        }
+    }
+
+    reverse(bt.begin(), bt.end());
+    int myID = 0;
+    int size = 0;
+    for (size_t i : boost::irange(size_t{0}, bt.size())) {
+        for (int j=bt[i].first; j<=bt[i].second; j++)
+            clusterid[size++] = myID;
+        myID++;
+    }
+
+    return;
 }
 
 //calculates the average width later used to get the best cluster

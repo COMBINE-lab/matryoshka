@@ -51,34 +51,40 @@ where the first three columns represent the chromosome name with the fragment st
 
 An example run on chromosome 19 (given in the example dataset) of mouse embryonic stem cell data. You should get similar output when running Matryoshka:
 
-    time ./src/matryoshka -i IMR90/40kb/combined/chr1.nij.comb.40kb.matrix.gz -g 1 -o test
+	time ./src/matryoshka -i ../example/nij.chr19.new.gz -g 1 -o test
+	Reading input from ../example/nij.chr19.new.gz.
+	chr19 at resolution 40000bp
+	Mean Boundary Index is 664.7
+	MatrixParser read matrix of size: 1534 x 1534
+	gamma=0
+	gamma=0.05
+	gamma=0.1
+	gamma=0.15
+	gamma=0.2
+	gamma=0.25
+	gamma=0.3
+	gamma=0.35
+	gamma=0.4
+	gamma=0.45
+	gamma=0.5
+	gamma=0.55
+	gamma=0.6
+	gamma=0.65
+	gamma=0.7
+	gamma=0.75
+	gamma=0.8
+	gamma=0.85
+	gamma=0.9
+	gamma=0.95
+	gamma=1
+	There are 2 levels of hierarchy with clustering: 
+	0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 
+	Writing consensus for level 1
+	Writing consensus for level 2
 
-    Multiresoultion ensemble will be written to files
-    Reading input from IMR90/40kb/combined/chr1.nij.comb.40kb.matrix.gz.
-    chr1 at resolution 40000bp
-    line 1000
-    line 2000
-    line 3000
-    line 4000
-    line 5000
-    line 6000
-    MatrixParser read matrix of size: 6182 x 6182
-    gamma=0
-    gamma=0.05
-    gamma=0.1
-    gamma=0.15
-    gamma=0.2
-    gamma=0.25
-    gamma=0.3
-    gamma=0.35
-    gamma=0.4
-    gamma=0.45
-    gamma=0.5
-    Writing consensus domains to: test.consensus.txt
-    Writing multiscale domains
+	real	0m19.139s
+	user	0m19.047s
+	sys	0m0.012s
 
-    real    1m35.923s
-    user    1m34.461s
-    sys 0m1.401s
 
 The first `-i` parameter is a gzipped HiC matrix for chromosome 19 as obtained from Dixon et al (http://chromosome.sdsc.edu/mouse/hi-c/download.html) and edited to follow the above guideline. The second `-g` parameter is the maximum gamma at which to sample at. Output files are all written with a prefix `test`.

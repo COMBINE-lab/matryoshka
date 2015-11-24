@@ -450,33 +450,18 @@ void optK(SymmetricMatrix sums, int k, int clusterid[]) {
     for (size_t i : boost::irange(size_t{0}, tempK))
         solDict[1][i] = sums(0, i);
 
-    for (size_t i : boost::irange(size_t{1}, tempK)) {
-        float m = 10000000;
-        int x = 0;
-        for (size_t j : boost::irange(size_t{1}, i)) {
-            if (solDict[1][j] + sums(j+1, i) < m) {
-                m = solDict[1][j] + sums(j+1, i);
-                x = j;
-            }
-        }
-        solDict[2][i] = m;
-        opt[std::make_pair(2,i)] = x;
-    }
-
-    if (k >= 3) {
-        for (size_t l : boost::irange(size_t{3},size_t(k+1))) {
-            for (size_t i : boost::irange(size_t{1}, tempK)) {
-                float m = 10000000;
-                int x = 0;
-                for (size_t j : boost::irange(size_t{1}, i)) {
-                    if (solDict[l-1][j] + sums(j+1, i) < m) {
-                        m = solDict[l-1][j] + sums(j+1, i);
-                        x = j;
-                    }
+   for (size_t l : boost::irange(size_t{2},size_t(k+1))) {
+        for (size_t i : boost::irange(size_t{1}, tempK)) {
+            float m = 10000000;
+            int x = 0;
+            for (size_t j : boost::irange(size_t{1}, i)) {
+                if (solDict[l-1][j] + sums(j+1, i) < m) {
+                    m = solDict[l-1][j] + sums(j+1, i);
+                    x = j;
                 }
-                solDict[l][i] = m;
-                opt[std::make_pair(l,i)] = x;
             }
+            solDict[l][i] = m;
+            opt[std::make_pair(l,i)] = x;
         }
     }
     

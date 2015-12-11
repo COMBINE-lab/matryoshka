@@ -64,7 +64,7 @@ WeightedDomainEnsemble multiscaleDomains(MatrixProperties matProp, float gammaMa
 
 DomainSet consensusDomains(WeightedDomainEnsemble& dEnsemble);
 
-void outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int start, int hier);
+void outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int start, float hier);
 int outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int hier, int myIndex, int pIndex);
 
 int calCoverage(WeightedDomainEnsemble& dEnsemble, MatrixProperties matProp);

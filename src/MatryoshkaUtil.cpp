@@ -218,13 +218,15 @@ WeightedDomainEnsemble multiscaleDomains(MatrixProperties matProp,
     return dEnsemble;
 }
 
-void outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int start, int hier) {
+void outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int start, float hier) {
     ofstream file;
     file.open(fname, ios::app);
     int res = matProp.resolution;
     for (auto d : dSet) {
-        //file << matProp.chrom << "\t" << (d.start+1+start)*res << "\t" << (d.end+1+start)*res << "\t" << hier << endl;
-        file << matProp.chrom << "\t" << (d.start+start)*res << "\t" << (d.end+start)*res << "\t" << hier << endl;
+        //file << matProp.chrom << "\t" << (d.start+start)*res << "\t" << (d.end+start)*res << "\t" << hier << endl;
+        //file << chromosome << tool << feature << start << end << score << strand << frame << hier << endl;
+        file << matProp.chrom << "\t" << "Matryoshka1.0" << "\t" << "?" << "\t" << (d.start)*res << "\t" <<
+            (d.end)*res << "\t" << "?" << "\t" << "?" << "\t" << "." << "\t" << hier << endl;
     }
     file.close();
 }
@@ -234,10 +236,11 @@ int outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int hi
     file.open(fname, ios::app);
     int res = matProp.resolution;
     for (auto d : dSet) {
-        //file << myIndex << "\t" << matProp.chrom << "\t" << (d.start+1)*res << "\t" << 
-        //    (d.end+1)*res << "\t" << pIndex << "\t" << hier << endl;
-        file << myIndex << "\t" << matProp.chrom << "\t" << (d.start)*res << "\t" << 
-            (d.end)*res << "\t" << pIndex << "\t" << hier << endl;
+        //file << myIndex << "\t" << matProp.chrom << "\t" << (d.start)*res << "\t" << 
+        //    (d.end)*res << "\t" << pIndex << "\t" << hier << endl;
+        //file << chromosome << tool << feature << start << end << score << strand << frame << hier << endl;
+        file << matProp.chrom << "\t" << "Matryoshka1.0" << "\t" << "?" << "\t" << (d.start)*res << "\t" <<
+            (d.end)*res << "\t" << "?" << "\t" << "?" << "\t" << "." << "\t" << hier << endl;
         myIndex++;
     }
     file.close();

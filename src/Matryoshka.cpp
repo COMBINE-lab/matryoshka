@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
         cerr << "Writing all multi scale domains to file" << endl;
         for (int i=0; i<K; i++){
             auto multiscaleFile = p.outputPrefix + ".multiscale.txt";
-            outputDomains(dEnsemble.domainSets[i], multiscaleFile, matProp, 0, i);
+            outputDomains(dEnsemble.domainSets[i], multiscaleFile, matProp, 0, p.gammaMin+(i*p.stepSize));
         }
       }
       

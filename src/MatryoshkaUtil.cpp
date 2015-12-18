@@ -96,19 +96,31 @@ void MatrixProperties::computemuBI() {
     using namespace boost::range;
     // A reference will be easier to work with here
     SparseMatrix& M = *matrix;
-    size_t n = matrix->size1();
+    int n = matrix->size1();
     BI = std::vector<double>(matrix->size1()+1);
 
     double interval = 3; 
     double steps = 12;
     double b = 0, a1, a2; 
     muBI = 0;
-    for (size_t i : boost::irange(size_t{0}, n)) {
+    for (int i=0; i<n; i++) {
         b = 0;
         for (int q=1; q<=steps; q++) {
             for (int p=1; p<=interval; p++){
-                a1 = M(i-q, i-p) - M(i-q, i+p);
-                a2 = M(i+q, i-p) - M(i+q, i+p);
+                a1 = 0;
+                a2 = 0;
+                if (i-q >= 0) {
+                    if (i-p >= 0) 
+                        a1 = M(i-q, i-p);
+                    if (i+p < n)
+                        a1 -= M(i-q, i+p); 
+                }
+                if (i+q < n) {
+                    if (i-p >= 0)
+                        a2 = M(i+q, i-p);
+                    if (i+p < n)
+                        a2 -= M(i+q, i+p); 
+                }
                 b += abs(a1) + abs(a2);
             }
         }
@@ -225,8 +237,8 @@ void outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int s
     for (auto d : dSet) {
         //file << matProp.chrom << "\t" << (d.start+start)*res << "\t" << (d.end+start)*res << "\t" << hier << endl;
         //file << chromosome << tool << feature << start << end << score << strand << frame << hier << endl;
-        file << matProp.chrom << "\t" << "Matryoshka1.0" << "\t" << "?" << "\t" << (d.start)*res << "\t" <<
-            (d.end)*res << "\t" << "?" << "\t" << "?" << "\t" << "." << "\t" << hier << endl;
+        file << matProp.chrom << "\t" << "Matryoshka1.0" << "\t" << "Domain" << "\t" << (d.start)*res << "\t" <<
+            (d.end)*res << "\t" << "." << "\t" << "." << "\t" << "." << "\t" << "Level=" << hier << endl;
     }
     file.close();
 }
@@ -239,8 +251,13 @@ int outputDomains(DomainSet dSet, string fname, MatrixProperties matProp, int hi
         //file << myIndex << "\t" << matProp.chrom << "\t" << (d.start)*res << "\t" << 
         //    (d.end)*res << "\t" << pIndex << "\t" << hier << endl;
         //file << chromosome << tool << feature << start << end << score << strand << frame << hier << endl;
-        file << matProp.chrom << "\t" << "Matryoshka1.0" << "\t" << "?" << "\t" << (d.start)*res << "\t" <<
-            (d.end)*res << "\t" << "?" << "\t" << "?" << "\t" << "." << "\t" << hier << endl;
+        file << matProp.chrom << "\t" << "Matryoshka1.0" << "\t" << "Domain" << "\t" << (d.start)*res << "\t" <<
+            (d.end)*res << "\t" << "." << "\t" << "." << "\t" << "." << "\t" << 
+            "Level=" << hier << ";ID=" << myIndex;
+        if(pIndex != -1)
+            file << ";Parent=" << pIndex << endl;
+        else
+            file << endl;
         myIndex++;
     }
     file.close();

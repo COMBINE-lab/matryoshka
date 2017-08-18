@@ -47,6 +47,9 @@ int main(int argc, char* argv[]) {
     double stepSize;
     bool outputMultiscale;
     int minMeanSamples;
+    int resolution;
+    bool sparseFormat; //rao input data format
+    string chrom;
   };
 
   Params p;
@@ -56,13 +59,16 @@ int main(int argc, char* argv[]) {
   opts.add_options()
   ("gammaMax,g", po::value<double>(&p.gammaMax)->required(), "gamma-max (highest resolution to generate domains)")
   ("gammaMin,x", po::value<double>(&p.gammaMin)->default_value(0), "gamma-min (lowest resolution to generate domains)")
-  ("help,h", "produce help message")
-  ("input,i", po::value<string>(&p.inputFile)->required(), "input matrix file, expected format (tab-separated): <chromo>\\t<start>\\t<end>\\t<f1 f2 ...>")
+  ("help,h", "Produce help message")
+  ("input,i", po::value<string>(&p.inputFile)->required(), "Input matrix file, expected format (tab-separated): <chromo>\\t<start>\\t<end>\\t<f1 f2 ...>")
   ("topK,k", po::value<size_t>(&p.k)->default_value(1), "Compute the top k optimal solutions")  
   ("outputMultiscale,m", po::value<bool>(&p.outputMultiscale)->zero_tokens()->default_value(false), "Output multiscale domains that are used for clustering to files as well")
   ("minMeanSamples,n", po::value<int>(&p.minMeanSamples)->default_value(100), "Minimum required number of samples to compute a mean")
-  ("output,o", po::value<string>(&p.outputPrefix)->required(), "output filename prefix")  
-  ("stepSize,s", po::value<double>(&p.stepSize)->default_value(0.05), "Step size to increment resolution parameter");
+  ("output,o", po::value<string>(&p.outputPrefix)->required(), "Output filename prefix")  
+  ("stepSize,s", po::value<double>(&p.stepSize)->default_value(0.05), "Step size to increment resolution parameter")
+  ("resolution,r", po::value<int>(&p.resolution)->default_value(40000), "Resolution of data")
+  ("parseSparseFormat,R", po::value<bool>(&p.sparseFormat)->zero_tokens()->default_value(false), "Parse the sparse matrix format")
+  ("chromosome,c", po::value<string>(&p.chrom)->default_value("N/A"), "Chromosome");
 
   po::variables_map vm;
   try {
@@ -80,7 +86,13 @@ int main(int argc, char* argv[]) {
       double eps = 1e-5;
       cerr << "Reading input from " << p.inputFile << ".\n";
 
-  	  auto matProp = parseGZipMatrix(p.inputFile);
+      p.chrom = "chr" + p.chrom;
+      MatrixProperties matProp;
+      if (p.sparseFormat) {
+        matProp = parseSparseMatrix(p.inputFile, p.resolution, p.chrom);
+      } else { 
+          matProp = parseGZipMatrix(p.inputFile);
+      }
       auto mat = matProp.matrix;
       cerr << "MatrixParser read matrix of size: " << mat->size1() << " x " << mat->size2()  << "\n";
 
@@ -102,11 +114,11 @@ int main(int argc, char* argv[]) {
         VI_S[i] = new double[K];
       getVImatrix(dEnsemble, VI_S);
 
-      /*for (int i=0;i<K;i++){
-        for (int j=0; j<K-1; j++)
-          cerr << VI_S[i][j] << ",";
-        cerr << VI_S[i][K-1] << endl;
-      }*/
+      //for (int i=0;i<K;i++){
+      //  for (int j=0; j<K-1; j++)
+      //    cerr << VI_S[i][j] << ",";
+      //  cerr << VI_S[i][K-1] << endl;
+      //}
 
       std::vector<int> PAMresult = getCluster(VI_S, K);
       int resultSize = PAMresult.size();
@@ -172,8 +184,11 @@ int main(int argc, char* argv[]) {
             size_t end = d.end;
             pIndex++;
             
-            boost::numeric::ublas::compressed_matrix<double> passed_ptr = subrange(*mat, start, end, start, end);
-            using SparseMatrix = boost::numeric::ublas::compressed_matrix<double>;
+            //boost::numeric::ublas::compressed_matrix<double> passed_ptr = subrange(*mat, start, end, start, end);
+            //using SparseMatrix = boost::numeric::ublas::compressed_matrix<double>;
+            //std::shared_ptr<SparseMatrix> mat_topass = make_shared<SparseMatrix>(passed_ptr);
+            boost::numeric::ublas::matrix<double> passed_ptr = subrange(*mat, start, end, start, end);
+            using SparseMatrix = boost::numeric::ublas::matrix<double>;
             std::shared_ptr<SparseMatrix> mat_topass = make_shared<SparseMatrix>(passed_ptr);
             matProp.matrix = mat_topass;
             auto dEnsemble = multiscaleDomains(matProp, p.gammaMax, p.gammaMin, p.stepSize, p.k, p.minMeanSamples, areaCovered, allMu, index);

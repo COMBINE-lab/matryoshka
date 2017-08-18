@@ -32,6 +32,10 @@ MatrixProperties parseGZipMatrix(string path) {
     prop.matrix = std::make_shared<SparseMatrix>();
 
 	ifstream file(path, ios_base::in | ios_base::binary);
+    if (!file.good()) {
+        std::cerr << "Couldn't read file " << path << std::endl;
+        std::exit(1);
+    }
     assert(file.good());
     boost::iostreams::filtering_streambuf<boost::iostreams::input> in;
     in.push(boost::iostreams::gzip_decompressor());
@@ -78,7 +82,7 @@ MatrixProperties parseGZipMatrix(string path) {
             double e  = stod(parts[j]);
             if (e > 0.0) {
                 size_t row = j - 3;
-                prop.matrix->push_back(i, row, e);
+                prop.matrix->insert_element(i, row, e);
                 tot += e;
                 nedge++;
             }
@@ -88,6 +92,61 @@ MatrixProperties parseGZipMatrix(string path) {
         //if ( i % 1000 == 0 ) { std::cerr << "line " << i << "\n"; }
         if (incoming.eof()) break;
     }
+    prop.computemuBI();
+    return prop;
+}
+
+MatrixProperties parseSparseMatrix(string path, int resolution, string chrom) {
+    MatrixProperties prop;
+    int M=0;
+    int n;
+
+    {
+        ifstream file(path);
+        if (!file.good()) {
+            std::cerr << "Couldn't read file: " << path << std::endl;
+            std::exit(1);
+        }
+        assert(file.good());
+
+        string line;
+        int v, w;
+        double count;
+        int maxv = 0;
+        while ( file >> v >> w >> count )  {
+            if (v > maxv) maxv = v;
+            if (w > maxv) maxv = w;
+            M++;
+        }
+        n = maxv/resolution+1;
+        prop.chrom = chrom;
+        prop.resolution = resolution;
+        cerr << "Building matrix for chromosome " << prop.chrom << " at resolution " << prop.resolution << "bp with " << n << " rows." << endl;
+    }
+
+    cerr << "Initializing matrix to zero elements" << endl;
+    prop.matrix = std::make_shared<SparseMatrix>(n,n,M);
+
+    for (auto i = 0; i < n; i++) {
+        for (auto j = 0; j < n; j++) {
+            prop.matrix->insert_element(i,j, 0.0);
+        }
+    }
+    
+    ifstream file(path);
+    string line;
+    int v, w;
+    double count;
+    int m = 0;
+    while ( file >> v >> w >> count )  {
+        size_t i = v/resolution;
+        size_t j = w/resolution;
+        //prop.matrix->insert_element(i, j, log(count));
+        prop.matrix->insert_element(i, j, count);
+        m++;
+        //if ( m % 100000 == 0 ) { std::cerr << "" << float(m)/M*100 << "%\n"; }
+    }
+
     prop.computemuBI();
     return prop;
 }
@@ -405,7 +464,7 @@ double getVI(DomainSet dSet1, DomainSet dSet2, size_t N){
     return VI;
 }
 
-//cluster the values according to variation of informatio to get gamma values
+//cluster the values according to variation of information to get gamma values
 //at each level of the hierarchy
 std::vector<int> getCluster(double **VI_S, int K){
     int clusterid[K], PAMresult[K];
@@ -450,7 +509,7 @@ std::vector<int> getCluster(double **VI_S, int K){
                 std::copy(clusterid, clusterid + K, PAMresult);
             }
     }
-
+    PAMresult[0] = 0; //enforce that first element is in 0th cluster
     std::vector<int> vec(PAMresult, PAMresult + K);
     return(vec);
 }

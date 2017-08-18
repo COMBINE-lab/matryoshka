@@ -15,7 +15,8 @@
 
 using namespace std;
 
-using SparseMatrix = boost::numeric::ublas::compressed_matrix<double>;
+//using SparseMatrix = boost::numeric::ublas::compressed_matrix<double>;
+using SparseMatrix = boost::numeric::ublas::matrix<double>;
 
 class MatrixProperties {
     public:
@@ -28,6 +29,7 @@ class MatrixProperties {
 };
 
 MatrixProperties parseGZipMatrix(string path);
+MatrixProperties parseSparseMatrix(string path, int resolution, string chrom);
 
 double d(size_t const & i, size_t const & j);
 

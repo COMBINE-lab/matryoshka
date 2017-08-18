@@ -24,7 +24,7 @@ set -e
 
 curl -k -L https://github.com/COMBINE-lab/matryoshka/zipball/master/ -o matryoshka.zip
 mkdir matryoshka
-unzip matryoshka.zip -d /matryoshka
+unzip matryoshka.zip -d ./matryoshka
 cd matryoshka/
 ls
 cp -r $(ls)/* ./

@@ -12,8 +12,8 @@ rpm -i --quiet epel-release-5-4.noarch.rpm
 yum install -y --quiet unzip
 yum install -y --quiet bzip2-devel.x86_64
 
-wget --no-check-certificate 'http://sourceforge.net/projects/boost/files/boost/1.59.0/boost_1_59_0.tar.bz2/download'
-tar xf /boost_1_59_0.tar.bz2
+wget --no-check-certificate 'http://sourceforge.net/projects/boost/files/boost/1.59.0/boost_1_59_0.tar.bz2'
+tar xf ./boost_1_59_0.tar.bz2
 cd boost_1_59_0/
 ./bootstrap.sh --prefix=/boost
 ./b2 -d0 clean

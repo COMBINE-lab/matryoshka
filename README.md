@@ -8,18 +8,18 @@ Usage
 
 You can get a list of command line arguments by passing the `--help` parameter. The current arguments are:
 
-	-g [ --gammaMax ] arg							gamma-max (highest resolution to generate domains)
-	-x [ --gammaMin ] arg (=0)						gamma-min (lowest resolution to generate domains)
-	-h [ --help ]									Produce help message
-	-i [ --input ] arg								Input matrix file, expected format (tab-separated): <chromo>\t<start>\t<end>\t<f1 f2 ...>
-	-k [ --topK ] arg (=1)							Compute the top k optimal solutions
-	-m [ --outputMultiscale ]						Output multiscale domains that are used for clustering to files as well
-	-n [ --minMeanSamples ] arg (=100)				Minimum required number of samples to compute a mean
-	-o [ --output ] arg								Output filename prefix
+	-g [ --gammaMax ] arg				gamma-max (highest resolution to generate domains)
+	-x [ --gammaMin ] arg (=0)			gamma-min (lowest resolution to generate domains)
+	-h [ --help ]					Produce help message
+	-i [ --input ] arg				Input matrix file, expected format (tab-separated): 									<chromo>\t<start>\t<end>\t<f1 f2 ...>
+	-k [ --topK ] arg (=1)				Compute the top k optimal solutions
+	-m [ --outputMultiscale ]			Output multiscale domains that are used for clustering to files too
+	-n [ --minMeanSamples ] arg (=100)		Minimum required number of samples to compute a mean
+	-o [ --output ] arg				Output filename prefix
 	-s [ --stepSize ] arg (=0.050000000000000003)	Step size to increment resolution parameter
-	-r [ --resolution ] arg (=40000)      			Resolution of data
-	-R [ --parseSparseFormat ]            			Parse the sparse matrix format
-	-c [ --chromosome ] arg (=N/A)					Chromosome
+	-r [ --resolution ] arg (=40000)      		Resolution of data
+	-R [ --parseSparseFormat ]            		Parse the sparse matrix format
+	-c [ --chromosome ] arg (=N/A)			Chromosome
 
 Input Format
 ------------
